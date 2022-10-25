@@ -47,7 +47,7 @@ my $supported_formats_block = \@$qemu_img_blocks_ref[-2];
 print $$supported_formats_block, "\n";
 #print Dump(&QemuImgScrap::process_supported_format_block($supported_formats_block));
 #print Dump(&QemuImgScrap::process_header_block($header_block_ref));
-#print Dump({ commands => &QemuImgScrap::process_command_syntax_block($command_syntax_block_ref)}), "\n";
+print Dump(&QemuImgScrap::process_command_syntax_block($command_syntax_block_ref)), "\n";
 
 
 
