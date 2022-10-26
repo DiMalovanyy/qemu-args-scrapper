@@ -24,7 +24,7 @@ This files can be easy integrated with further qemu integration application, tha
     - [ ] bitmap command
     - [ ] convert command
     - [ ] create command
-    - [ ] dd command
+    - [X] dd command
     - [ ] info command
     - [ ] map command
     - [ ] snapshot command
@@ -39,6 +39,8 @@ This files can be easy integrated with further qemu integration application, tha
     - [ ] test coverage
   - [ ] smart multiple arguments matching
     - [ ] test coverage
+  - [X] params with values parsing
+    - [X] test coverage (covered in dd)
 - [ ] **qemu-storage-daemon** (should be much more easy)
   - [ ] test coverage
   

@@ -68,8 +68,15 @@ sub process_command_syntax_block {
         # Here in $argument list lefts only params (not args and not optionsal blocks) like: 
         # filename in  "command [-arg val] filename"
         $argument_list =~ s/\A\s+//;
-        my $params_ref = [ split /\s+/, $argument_list ];
-
+        my $splited_params_ref = [ split /\s+/, $argument_list ];
+        my $params_ref;
+        foreach( @$splited_params_ref ) {
+            m/(?<param_name>[^=\s]+)(?:=(?<param_value>.*))?/;
+            my $param;
+            $$param{name} = $+{param_name};
+            $$param{value} = $+{param_value} if defined $+{param_value};
+            push @$params_ref, $param; 
+        }
         # todo: alteration
         $$result{options} = $options_ref if defined $options_ref;
         $$result{'optional-args'} = $optional_args_ref if defined $optional_args_ref;

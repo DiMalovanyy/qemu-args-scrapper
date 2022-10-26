@@ -28,7 +28,7 @@ sub test_process_command_syntax_block {
     plan tests => 1;
 
     my $test_basic = sub {
-        plan tests => 5;
+        plan tests => 6;
        
         {
             # 1. Basic input with optional different args types and one param
@@ -39,7 +39,7 @@ HEREDOC
             my $expect_output = [{
                 amend=>{
                     options=>[{name =>'-o',value=>'options'}],
-                    params=>["filename"],
+                    params=>[{'name'=>"filename"}],
                     'optional-args' => [ 
                         {options=>[{name=>'--object',value=>'objectdef'}]},
                         {options=>[{name=>'--image-opts',value=>'none'}]},
@@ -79,7 +79,7 @@ HEREDOC
                         {'options'=>[{'value'=>'none','name'=>'-w'}]},
                         {'options'=>[{'name'=>'-U','value'=>'none'}]},
                     ],
-                    'params'=>['filename'],
+                    'params'=>[{'name'=>'filename'}],
                 },
             }];
             my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_bench);
@@ -104,7 +104,7 @@ HEREDOC
                         {'options'=>[{'name'=>'-d','value'=>'none'}]},
                         {'options'=>[{'name'=>'-p','value'=>'none'}]},
                     ],
-                    'params'=>['filename'],
+                    'params'=>[{'name'=>'filename'}],
                 },
             }];
             my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_commit);
@@ -131,7 +131,7 @@ HEREDOC
                         {'options'=>[{'value'=>'backing_fmt','name'=>'-F'}]},
                     ],
                     'options'=>[{'name'=>'-b', 'value'=>'backing_file'}],
-                    'params'=>['filename'],
+                    'params'=>[{'name'=>'filename'}],
                 },
             }];
             my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_rebase);
@@ -145,7 +145,7 @@ HEREDOC
 HEREDOC
             my $expect_output = [{
                 'compare'=>{
-                    'params'=>['filename1','filename2'],
+                    'params'=>[{'name'=>'filename1'},{'name'=>'filename2'}],
                     'optional-args'=>[
                         {'options'=>[{'value'=>'objectdef','name'=>'--object'}]},
                         {'options'=>[{'value'=>'none','name'=>'--image-opts'}]},
@@ -161,6 +161,32 @@ HEREDOC
             }];
             my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_compare);
             cmp_deeply($output, $expect_output, "qemu-img basic [compare]");
+        }
+
+        {
+            # 6.qemu-img dd (no params only options & params with =)
+            my $input_basic_dd = <<"HEREDOC";
+    dd [--image-opts] [-U] [-f fmt] [-O output_fmt] [bs=block_size] [count=blocks] [skip=blocks] if=input of=output
+HEREDOC
+            my $expect_output = [{
+                'dd'=>{
+                    'params'=>[
+                        {'name'=>'if','value'=>'input'},
+                        {'name'=>'of','value'=>'output'},
+                    ],
+                    'optional-args'=>[
+                        {'options'=>[{'value'=>'none','name'=>'--image-opts'}]},
+                        {'options'=>[{'value'=>'none','name'=>'-U'}]},
+                        {'options'=>[{'value'=>'fmt','name'=>'-f'}]},
+                        {'options'=>[{'name'=>'-O','value'=>'output_fmt'}]},
+                        {'params'=>[{'name'=>'bs','value'=>'block_size'}]},
+                        {'params'=>[{'name'=>'count','value'=>'blocks'}]},
+                        {'params'=>[{'name'=>'skip','value'=>'blocks'}]},
+                    ],
+                },
+            }];
+            my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_dd);
+            cmp_deeply($output, $expect_output, "qemu-img basic [dd]");
         }
     };
 
