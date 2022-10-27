@@ -25,15 +25,15 @@ This files can be easy integrated with further qemu integration application, tha
     - [ ] convert command
     - [ ] create command
     - [X] dd command
-    - [ ] info command
-    - [ ] map command
-    - [ ] snapshot command
+    - [X] info command
+    - [X] map command
+    - [X] snapshot command
     - [ ] resize command
     - [ ] all together
     - [ ] failed test cases
   - [X] optional recursion diving
     - [X] test coverage
-  - [ ] smart alteration matching
+  - [X] smart alteration matching (Now not full: works only with optional)
     - [ ] test coverage
   - [ ] **command parameters matching** with another section
     - [ ] test coverage

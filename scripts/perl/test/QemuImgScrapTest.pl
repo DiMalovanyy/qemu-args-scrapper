@@ -28,7 +28,7 @@ sub test_process_command_syntax_block {
     plan tests => 1;
 
     my $test_basic = sub {
-        plan tests => 6;
+        plan tests => 9;
        
         {
             # 1. Basic input with optional different args types and one param
@@ -187,6 +187,75 @@ HEREDOC
             }];
             my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_dd);
             cmp_deeply($output, $expect_output, "qemu-img basic [dd]");
+        }
+
+        {
+            # 7. qemu-img info (very common)
+            my $input_basic_info = <<"HEREDOC";
+    info [--object objectdef] [--image-opts] [-f fmt] [--output=ofmt] [--backing-chain] [-U] filename
+HEREDOC
+            my $expect_output = [{
+                'info'=>{
+                    'optional-args'=>[
+                        {'options'=>[{'name'=>'--object','value'=>'objectdef'}]},
+                        {'options'=>[{'name'=>'--image-opts','value'=>'none'}]},
+                        {'options'=>[{'name'=>'-f','value'=>'fmt'}]},
+                        {'options'=>[{'name'=>'--output','value'=>'ofmt'}]},
+                        {'options'=>[{'name'=>'--backing-chain','value'=>'none'}]},
+                        {'options'=>[{'name'=>'-U','value'=>'none'}]},
+                    ],
+                    'params'=>[{'name'=>'filename'}],
+                },
+            }];
+            my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_info);
+            cmp_deeply($output, $expect_output, "qemu-img basic [info]");
+        } 
+        {
+            # 8. qemu-img map (very common)
+            my $input_basic_map = <<"HEREDOC";
+    map [--object objectdef] [--image-opts] [-f fmt] [--start-offset=offset] [--max-length=len] [--output=ofmt] [-U] filename
+HEREDOC
+            my $expect_output = [{
+                'map'=>{
+                    'optional-args'=>[
+                        {'options'=>[{'name'=>'--object','value'=>'objectdef'}]},
+                        {'options'=>[{'name'=>'--image-opts','value'=>'none'}]},
+                        {'options'=>[{'value'=>'fmt','name'=>'-f'}]},
+                        {'options'=>[{'value'=>'offset','name'=>'--start-offset'}]},
+                        {'options'=>[{'name'=>'--max-length','value'=>'len'}]},
+                        {'options'=>[{'name'=>'--output','value'=>'ofmt'}]},
+                        {'options'=>[{'name'=>'-U','value'=>'none'}]},
+                    ],
+                    'params'=>[{'name'=>'filename'}],
+                },
+            }];
+            my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_map);
+            cmp_deeply($output, $expect_output, "qemu-img basic [map]");
+        }
+        {
+            # 9. qemu-img snapshot (alteration)
+            my $input_basic_snapshot = <<"HEREDOC";
+    snapshot [--object objectdef] [--image-opts] [-U] [-q] [-l | -a snapshot | -c snapshot | -d snapshot] filename
+HEREDOC
+            my $expect_output = [{
+                'snapshot'=>{
+                    'optional-args'=>[
+                        {'options'=>[{'name'=>'--object','value'=>'objectdef'}]},
+                        {'options'=>[{'name'=>'--image-opts','value'=>'none'}]},
+                        {'options'=>[{'name'=>'-U','value'=>'none'}]},
+                        {'options'=>[{'value'=>'none','name'=>'-q'}]},
+                        {'alteration'=>[
+                            {'options'=>[{'name'=>'-l','value'=>'none'}]},
+                            {'options'=>[{'name'=>'-a','value'=>'snapshot'}]},
+                            {'options'=>[{'name'=>'-c','value'=>'snapshot'}]},
+                            {'options'=>[{'name'=>'-d','value'=>'snapshot'}]},
+                        ]},
+                    ],
+                    'params'=>[{'name'=>'filename'}],
+                },
+            }];
+            my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_snapshot);
+            cmp_deeply($output, $expect_output, "qemu-img basic [snapshot]");
         }
     };
 

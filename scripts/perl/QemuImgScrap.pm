@@ -46,12 +46,33 @@ sub process_command_syntax_block {
         my $argument_list = $_[0];
         $_ = $argument_list;
 
+
+
+        #1. Check optional arguments
+        #   Fall in deep recursion in [statement] optional block
+        #
+        # arguments_lsit left without optional arguments
         my $optional_args_ref; # list of recursive defined map (of optional vals [ --like this ])
         while ( $argument_list =~ /(?:\[)(?<optional_value>(?:[^\[\]]|(?R))*)(?:\])/g ) {
             # Be careful in deep (infinity) recursion
             next unless defined $+{optional_value};
             push @$optional_args_ref, __SUB__->($+{optional_value}, $_[1] + 1);
             $argument_list = $` . ' ' . $';
+        }
+
+        #2. Check alteration
+        #   It only match high level alteration (Here only high level block left)
+        #   eg.
+        #       It will NOT match in [ statement1 | statement2 | ... ] block
+        #       It WILL match "statement1 | statement2 | ..." 
+        #   Fall in deep recursion for each statement
+        my $alteration_ref;
+        if ( $argument_list =~ m/\|/) { #string conatins alteration
+            while( $argument_list =~ /(?:\|)?(?<alteration>[^\|]+)(?:\|)?/g) {
+                next unless defined $+{alteration};
+                push @$alteration_ref, __SUB__->($+{alteration}, $_[1] + 1);
+                $argument_list = $';
+            }
         }
 
 
@@ -81,6 +102,7 @@ sub process_command_syntax_block {
         $$result{options} = $options_ref if defined $options_ref;
         $$result{'optional-args'} = $optional_args_ref if defined $optional_args_ref;
         $$result{params} = $params_ref if defined $params_ref and scalar(@$params_ref) != 0;
+        $$result{alteration} = $alteration_ref if defined $alteration_ref;
 
         $result;
     };
