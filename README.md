@@ -22,23 +22,23 @@ This files can be easy integrated with further qemu integration application, tha
     - [X] rebase command
     - [X] compare command
     - [ ] bitmap command
-    - [ ] convert command
-    - [ ] create command
+    - [X] convert command
+    - [X] create command
     - [X] dd command
     - [X] info command
     - [X] map command
     - [X] snapshot command
-    - [ ] resize command
+    - [X] resize command
     - [ ] all together
     - [ ] failed test cases
   - [X] optional recursion diving
     - [X] test coverage
   - [X] smart alteration matching (Now not full: works only with optional)
-    - [ ] test coverage
+    - [X] test coverage
   - [ ] **command parameters matching** with another section
     - [ ] test coverage
-  - [ ] smart multiple arguments matching
-    - [ ] test coverage
+  - [X] smart multiple arguments matching
+    - [X] test coverage
   - [X] params with values parsing
     - [X] test coverage (covered in dd)
 - [ ] **qemu-storage-daemon** (should be much more easy)
