@@ -53,11 +53,11 @@ sub process_command_syntax_block {
         #
         # arguments_lsit left without optional arguments
         my $optional_args_ref; # list of recursive defined map (of optional vals [ --like this ])
-        while ( $argument_list =~ /(?:\[)(?<optional_value>(?:[^\[\]]|(?R))*)(?:\])/g ) {
+        while ( $argument_list =~ /(?:\[)(?<optional_value>(?:[^\[\]]|(?R))*)(?:\])\B/g ) {
             # Be careful in deep (infinity) recursion
-            next unless defined $+{optional_value};
-            push @$optional_args_ref, __SUB__->($+{optional_value}, $_[1] + 1);
+            # print "{$_[1]} Optional value: $+{optional_value}\n";
             $argument_list = $` . ' ' . $';
+            push @$optional_args_ref, __SUB__->($+{optional_value}, $_[1] + 1);
         }
 
         #2. Check alteration
@@ -67,8 +67,9 @@ sub process_command_syntax_block {
         #       It WILL match "statement1 | statement2 | ..." 
         #   Fall in deep recursion for each statement
         my $alteration_ref;
-        if ( $argument_list =~ m/\|/) { #string conatins alteration
+        if ( $argument_list =~ m/\|(?![^\[\(]*(?:\]|\)))/) { #string conatins top level alteration (not in [] or () scope)
             while( $argument_list =~ /(?:\|)?(?<alteration>[^\|]+)(?:\|)?/g) {
+                # Be careful in deep (infinity) recursion
                 next unless defined $+{alteration};
                 push @$alteration_ref, __SUB__->($+{alteration}, $_[1] + 1);
                 $argument_list = $';
@@ -89,13 +90,15 @@ sub process_command_syntax_block {
         # Here in $argument list lefts only params (not args and not optionsal blocks) like: 
         # filename in  "command [-arg val] filename"
         $argument_list =~ s/\A\s+//;
-        my $splited_params_ref = [ split /\s+/, $argument_list ];
+        my $splited_params_ref = [ split /\s+(?![^\[\(]*(?:\]|\)))/, $argument_list ];
         my $params_ref;
         foreach( @$splited_params_ref ) {
-            m/(?<param_name>[^=\s]+)(?:=(?<param_value>.*))?/;
+            m/(?(DEFINE)(?<match_top_square>\[(?>[^\[\]]|(?&match_top_square))*\]))(?(DEFINE)(?<match_top_round>\((?>[^\(\)]|(?&match_top_round))*\)))(?<prefix>(?&match_top_square)|(?&match_top_round))?(?<param_name>[^=\s]+)(?:=(?<param_value>.*))?/;
+            
             my $param;
             $$param{name} = $+{param_name};
             $$param{value} = $+{param_value} if defined $+{param_value};
+            $$param{prefix} = __SUB__->($+{prefix}, $_[1] + 1) if defined $+{prefix};
             push @$params_ref, $param; 
         }
         # todo: alteration

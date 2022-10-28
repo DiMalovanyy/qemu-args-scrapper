@@ -28,7 +28,7 @@ sub test_process_command_syntax_block {
     plan tests => 1;
 
     my $test_basic = sub {
-        plan tests => 9;
+        plan tests => 12;
        
         {
             # 1. Basic input with optional different args types and one param
@@ -256,6 +256,117 @@ HEREDOC
             }];
             my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_snapshot);
             cmp_deeply($output, $expect_output, "qemu-img basic [snapshot]");
+        }
+
+        {
+            # 10.  qemu-img resize (param additional prefix)
+            my $input_basic_resize = <<"HEREDOC";
+    resize [--object objectdef] [--image-opts] [-f fmt] [--preallocation=prealloc] [-q] [--shrink] filename [+ | -]size
+HEREDOC
+            my $expect_output = [{
+                'resize'=>{
+                    'optional-args'=>[
+                        {'options'=>[{'value'=>'objectdef','name'=>'--object'}]},
+                        {'options'=>[{'value'=>'none','name'=>'--image-opts'}]},
+                        {'options'=>[{'name'=>'-f','value'=>'fmt'}]},
+                        {'options'=>[{'name'=>'--preallocation','value'=>'prealloc'}]},
+                        {'options'=>[{'value'=>'none','name'=>'-q'}]},
+                        {'options'=>[{'name'=>'--shrink','value'=>'none'}]},
+                    ],
+                    'params'=>[
+                        {'name'=>'filename'},
+                        {
+                            'name'=>'size',
+                            'prefix'=>{
+                                'optional-args'=>[
+                                    {'alteration'=>[
+                                        {'params'=>[{'name'=>'+'}]},
+                                        {'params'=>[{'name'=>'-'}]},
+                                    ]},
+                                ],
+                            },
+                        },
+                    ],
+                },
+            }];
+            my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_resize);
+            cmp_deeply($output, $expect_output, "qemu-img basic [resize]");
+        }
+
+        {
+            # 11. qemu-img create (optional param after required param + nested optional)
+            my $input_basic_create = <<"HEREDOC";
+    create [--object objectdef] [-q] [-f fmt] [-b backing_file [-F backing_fmt]] [-u] [-o options] filename [size]
+HEREDOC
+            my $expect_output = [{
+                'create'=>{
+                    'optional-args'=>[
+                        {'options'=>[{'value'=>'objectdef','name'=>'--object'}]},
+                        {'options'=>[{'value'=>'none','name'=>'-q'}]},
+                        {'options'=>[{'name'=>'-f','value'=>'fmt'}]},
+                        {
+                            'options'=>[{'value'=>'backing_file','name'=>'-b'}],
+                            'optional-args'=>[
+                                {'options'=>[{'value'=>'backing_fmt','name'=>'-F'}]},
+                            ],
+                        },
+                        {'options'=>[{'value'=>'none','name'=>'-u'}]},
+                        {'options'=>[{'value'=>'options','name'=>'-o'}]},
+                        {'params'=>[{'name'=>'size'}]},
+                    ],
+                    'params'=>[{'name'=>'filename'}],
+                },
+            }];
+            my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_create);
+            cmp_deeply($output, $expect_output, "qemu-img basic [create]");
+        }
+
+        {
+            # 12. convert (multiple params)
+            my $input_basic_convert = << "HEREDOC";
+    convert [--object objectdef] [--image-opts] [--target-image-opts] [--target-is-zero] [--bitmaps] [-U] [-C] [-c] [-p] [-q] [-n] [-f fmt] [-t cache] [-T src_cache] [-O output_fmt] [-B backing_file [-F backing_fmt]] [-o options] [-l snapshot_param] [-S sparse_size] [-r rate_limit] [-m num_coroutines] [-W] [--salvage] filename [filename2 [...]] output_filename
+HEREDOC
+            my $expect_output = [{
+                'convert'=>{
+                    'optional-args'=>[
+                        {'options'=>[{'name'=>'--object','value'=>'objectdef'}]},
+                        {'options'=>[{'value'=>'none','name'=>'--image-opts'}]},
+                        {'options'=>[{'name'=>'--target-image-opts','value'=>'none'}]},
+                        {'options'=>[{'name'=>'--target-is-zero','value'=>'none'}]},
+                        {'options'=>[{'name'=>'--bitmaps','value'=>'none'}]},
+                        {'options'=>[{'name'=>'-U','value'=>'none'}]},
+                        {'options'=>[{'name'=>'-C','value'=>'none'}]},
+                        {'options'=>[{'name'=>'-c','value'=>'none'}]},
+                        {'options'=>[{'value'=>'none','name'=>'-p'}]},
+                        {'options'=>[{'value'=>'none','name'=>'-q'}]},
+                        {'options'=>[{'name'=>'-n','value'=>'none'}]},
+                        {'options'=>[{'name'=>'-f','value'=>'fmt'}]},
+                        {'options'=>[{'value'=>'cache','name'=>'-t'}]},
+                        {'options'=>[{'name'=>'-T','value'=>'src_cache'}]},
+                        {'options'=>[{'value'=>'output_fmt','name'=>'-O'}]},
+                        {
+                            'options'=>[{'value'=>'backing_file','name'=>'-B'}],
+                            'optional-args'=>[
+                                {'options'=>[{'name'=>'-F','value'=>'backing_fmt'}]},
+                            ],
+                        },
+                        {'options'=>[{'value'=>'options','name'=>'-o'}]},
+                        {'options'=>[{'name'=>'-l','value'=>'snapshot_param'}]},
+                        {'options'=>[{'value'=>'sparse_size','name'=>'-S'}]},
+                        {'options'=>[{'name'=>'-r','value'=>'rate_limit'}]},
+                        {'options'=>[{'value'=>'num_coroutines','name'=>'-m'}]},
+                        {'options'=>[{'name'=>'-W','value'=>'none'}]},
+                        {'options'=>[{'value'=>'none','name'=>'--salvage'}]},
+                        {'params'=>[{'name'=>'filename2'}],'optional-args'=>[{'params'=>[{'name'=>'...'}]}]},
+                    ],
+                    'params'=>[
+                        {'name'=>'filename'},
+                        {'name'=>'output_filename'},
+                    ],
+                },
+            }];
+            my $output = &QemuImgScrap::process_command_syntax_block(\$input_basic_convert);
+            cmp_deeply($output, $expect_output, "qemu-img basic [convert]");
         }
     };
 
